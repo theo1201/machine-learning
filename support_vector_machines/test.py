@@ -1,28 +1,59 @@
+# Authors: Robert McGibbon, Joel Nothman, Guillaume Lemaitre
+
+from __future__ import print_function, division
+
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-x = np.linspace(0,2*np.pi,400)
-y =np.sin(x**2)
+from sklearn.datasets import load_digits
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
+from sklearn.decomposition import PCA, NMF
+from sklearn.feature_selection import SelectKBest, chi2
 
-# fig,ax = plt.subplots()
-# ax.plot(x,y)
-# ax.set_title('Simple plot')
-# plt.show()
-#
-# f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-# ax1.plot(x, y)
-# ax1.set_title('Sharing Y axis')
-# ax2.scatter(x, y)
-# plt.show()
-# fig, axes = plt.subplots(2, 2, subplot_kw=dict(polar=True))
-# axes[0, 0].plot(x, y)
-# axes[1, 1].scatter(x, y)
+print(__doc__)
 
-# plt.subplots(2, 2, sharex='col')
-# plt.subplots(2, 2, sharey='row')
-# plt.subplots(2, 2, sharex='all', sharey='all')
+pipe = Pipeline([
+    ('reduce_dim', PCA()),
+    ('classify', LinearSVC())
+])
 
-# plt.subplots(2, 2, sharex=True, sharey=True)
+N_FEATURES_OPTIONS = [2, 4, 8]
+C_OPTIONS = [1, 10, 100, 1000]
+param_grid = [
+    {
+        'reduce_dim': [PCA(iterated_power=7), NMF()],
+        'reduce_dim__n_components': N_FEATURES_OPTIONS,
+        'classify__C': C_OPTIONS
+    },
+    {
+        'reduce_dim': [SelectKBest(chi2)],
+        'reduce_dim__k': N_FEATURES_OPTIONS,
+        'classify__C': C_OPTIONS
+    },
+]
+reducer_labels = ['PCA', 'NMF', 'KBest(chi2)']
 
-x = np.arange(1, 7).reshape(2, 3)
-print(x.flat[3])
+grid = GridSearchCV(pipe, cv=3, n_jobs=1, param_grid=param_grid)
+digits = load_digits()
+grid.fit(digits.data, digits.target)
+
+mean_scores = np.array(grid.cv_results_['mean_test_score'])
+# scores are in the order of param_grid iteration, which is alphabetical
+mean_scores = mean_scores.reshape(len(C_OPTIONS), -1, len(N_FEATURES_OPTIONS))
+# select score for best C
+mean_scores = mean_scores.max(axis=0)
+bar_offsets = (np.arange(len(N_FEATURES_OPTIONS)) *
+               (len(reducer_labels) + 1) + .5)
+
+plt.figure()
+COLORS = 'bgrcmyk'
+for i, (label, reducer_scores) in enumerate(zip(reducer_labels, mean_scores)):
+    plt.bar(bar_offsets + i, reducer_scores, label=label, color=COLORS[i])
+
+plt.title("Comparing feature reduction techniques")
+plt.xlabel('Reduced number of features')
+plt.xticks(bar_offsets + len(reducer_labels) / 2, N_FEATURES_OPTIONS)
+plt.ylabel('Digit classification accuracy')
+plt.ylim((0, 1))
+plt.legend(loc='upper left')
