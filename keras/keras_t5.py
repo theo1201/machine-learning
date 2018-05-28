@@ -17,20 +17,34 @@ y_train = np_utils.to_categorical(y_train, num_classes=10)
 y_test = np_utils.to_categorical(y_test, num_classes=10)
 
 # Another way to build your neural net
+# model = Sequential([
+#     Dense(32, input_dim=784),
+#     Activation('relu'),
+#     Dense(10),
+#     Activation('softmax'),
+# ])
 model = Sequential([
-    Dense(32, input_dim=784),
+    Dense(32,input_dim=784),
     Activation('relu'),
     Dense(10),
-    Activation('softmax'),
+    Activation('softmax')
+
 ])
 
 # Another way to define your optimizer
-rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=1e-08, decay=0.0)
-
+# rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=1e-08, decay=0.0)
+rmsprop = RMSprop(lr=0.001,rho=0.9,epsilon=1e-08,decay=0.0)
 # We add metrics to get more results you want to see
-model.compile(optimizer=rmsprop,
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
+# model.compile(optimizer=rmsprop,
+#               loss='categorical_crossentropy',
+#               metrics=['accuracy'])
+
+model.compile(
+    optimizer=rmsprop,
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+
+)
 
 print('Training ------------')
 # Another way to train the model

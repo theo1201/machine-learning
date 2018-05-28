@@ -53,7 +53,9 @@ for step in range(4001):
     # data shape = (batch_num, steps, inputs/outputs)
     X_batch = X_train[BATCH_INDEX: BATCH_INDEX+BATCH_SIZE, :, :]
     Y_batch = y_train[BATCH_INDEX: BATCH_INDEX+BATCH_SIZE, :]
+
     cost = model.train_on_batch(X_batch, Y_batch)
+
     BATCH_INDEX += BATCH_SIZE
     BATCH_INDEX = 0 if BATCH_INDEX >= X_train.shape[0] else BATCH_INDEX
 

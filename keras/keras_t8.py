@@ -12,9 +12,12 @@ from keras.optimizers import Adam
 
 BATCH_START = 0
 TIME_STEPS = 20
+
 BATCH_SIZE = 50
+
 INPUT_SIZE = 1
 OUTPUT_SIZE = 1
+
 CELL_SIZE = 20
 LR = 0.006
 
@@ -40,6 +43,7 @@ model.add(LSTM(
 ))
 # add output layer
 model.add(TimeDistributed(Dense(OUTPUT_SIZE)))
+
 adam = Adam(LR)
 model.compile(optimizer=adam,
               loss='mse',)
@@ -50,6 +54,7 @@ for step in range(501):
     X_batch, Y_batch, xs = get_batch()
     cost = model.train_on_batch(X_batch, Y_batch)
     pred = model.predict(X_batch, BATCH_SIZE)
+
     plt.plot(xs[0, :], Y_batch[0].flatten(), 'r', xs[0, :], pred.flatten()[:TIME_STEPS], 'b--')
     plt.ylim((-1.2, 1.2))
     plt.draw()
